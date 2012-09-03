@@ -25,7 +25,7 @@ create table pdm_plot_pointers(pdm_cand_id int(4), pdm_plot_type_id smallint(2),
 
 create table processing(obs_id int(4) auto_increment, pointing_name char(16), grid_id int(4), basefilename varchar(64) default NULL, numfiles smallint(2) default NULL, institution varchar(32) default NULL, diskname varchar(32) default NULL, proc_stat char(1) default NULL, planned_date datetime default NULL, obsdate datetime default NULL, add_date datetime default NULL, proc_date datetime default NULL, results_date datetime default NULL, srv_id int(4) default NULL, primary key(obs_id));
 
-create table full_processing(obs_id int(4), proc_stat char(1) default NULL, guid char(36) default NULL, requested_date datetime default NULL, proc_date datetime default NULL, results_date datetime default NULL, primary key(obs_id));
+create table full_processing(obs_id int(4), status text default NULL, guid char(36) default NULL, updated_at datetime default NULL, primary key(obs_id));
 
 CREATE TABLE known (name varchar(16), right_ascension char(16), declination char(16), ra_deg float, dec_deg float, period float, dm float, primary key(name));
 
