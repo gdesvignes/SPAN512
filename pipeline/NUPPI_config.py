@@ -10,6 +10,9 @@ INSTITUTION = "Nancay"
 DEBUG = False 
 #DEBUG = True
 
+# For the full_proc pipeline
+MAX_STAGGING_SPACE_DISK = 100 * 1024 * 1024 * 1024 # 100 GB
+
 # NRT
 NRT_RA_DEG = 4/60.
 NRT_DEC_DEG = 22/60.

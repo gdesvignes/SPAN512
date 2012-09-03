@@ -17,6 +17,7 @@ import os.path
 import MySQLdb
 import time
 import glob
+from tools import scan_path
 
 # get configurations from config file
 from NUPPI_config import *
@@ -31,13 +32,27 @@ def DBconnect(Host,DBname,Username,Password):
 def grab_pointings2process():
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
     # TODO
-    DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM processing WHERE (proc_stat='o' AND institution='%s') ORDER BY add_date" % institution)
+    #DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM full_processing WHERE (proc_stat='requested') ORDER BY add_date" % institution)
+    DBcursor.execute("SELECT p.obs_id, p.basefilename, p.numfiles, p.add_date FROM full_processing AS f LEFT JOIN processing AS p ON f.obs_id = p.obs_id WHERE (f.status='requested') ORDER BY p.add_date" % institution)
     query = DBcursor.fetchall()
     DBconn.close()
     observations = []
     for value in query:
-	observations.append([value[0],value[1],value[2],value[3],value[4]])
+	observations.append([value[0],value[1],value[2],value[3]])
     return observations
+
+def check_free_stagging_space():
+    """Return the free space size in the stagging area"""
+    files = glob.glob(stagging_path)
+    used_space = 0
+    for file in files:
+      used_space +=  os.path.getsize(file)
+
+    # Check if we have more than 10 GB available
+    if (MAX_STAGGING_SPACE_DISK - used_space > 10 * 1024 * 1024 * 1024):
+        return True
+    else: return False	
+
 
 
 def check_free_resources():
@@ -55,42 +70,33 @@ def check_free_resources():
     return free_resources
     
     
-def create_batch_script((obs_id, basefilename, pointing_name, numfiles, add_date)):
+def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     #create a batch script to be submitted to the queue
  
     scratch = '%s/%s/' % (working_dir, obs_id) # working directory names
 
-    files = []
-    filterfiles = ""
-    
-    preprocess_error = "%s/error/%s.PREPROCESS_error_output" % (scratch, filename)
+    preprocess_error = "%s/error/%s.PREPROCESS_error_output" % (scratch, basefilename)
 
-    for i in range(0, int(numfiles), 1): #filenames. both the existing names and the new names after copying
-    	files.append(filename)
-    batchfile = open("NUPPI_batch_for_%s.sh" % filename,"w")
+    batchfile = open("NUPPI_batch_for_%s.sh" % basefilename,"w")
     batchfile.write("#!/bin/bash\n")
     batchfile.write("#PBS -M %s\n" % email)
     batchfile.write("#PBS -m a\n")
     batchfile.write("#PBS -V\n")
     batchfile.write("#PBS -q NUPPI\n")
-    batchfile.write("#PBS -N %s\n" % filename )
+    batchfile.write("#PBS -N %s\n" % basefilename )
     batchfile.write("#PBS -l %s\n" % node_req)
-    batchfile.write("#PBS -o %s/logs/%s.out\n" % (pipeline_loc,filename) )
-    batchfile.write("#PBS -e %s/logs/%s.err\n" % (pipeline_loc,filename) )
+    batchfile.write("#PBS -o %s/logs/%s.out\n" % (pipeline_loc, basefilename) )
+    batchfile.write("#PBS -e %s/logs/%s.err\n" % (pipeline_loc, basefilename) )
     if options.debug:
 	batchfile.write("#PBS -j oe\n") # combine stdout and stderr output streams for debugging
     batchfile.write("\n")
-    batchfile.write("echo line 0 - got past the headers\n")
 
     batchfile.write("""echo PROCESSING: `date` >> %s\n""" % log_file)
-    batchfile.write("""echo -e "\t Starting processing of: %s" >> %s\n""" % (filename, log_file))
+    batchfile.write("""echo -e "\t Starting processing of: %s" >> %s\n""" % (basefilename, log_file))
     batchfile.write("""echo -e "\t\t Using node: `uname -n`\n" >> %s\n""" % log_file)
 
     batchfile.write("uname -n\n")
     batchfile.write("date\n")
-
-    batchfile.write("time_before=`date +%s`\n")
-    batchfile.write("date_started=`date +%y%m%d`\n")
 
     batchfile.write("#make scratch directory to work in\n")
     batchfile.write("rm -rfd %s\n" % scratch)
@@ -99,7 +105,7 @@ def create_batch_script((obs_id, basefilename, pointing_name, numfiles, add_date
     batchfile.write("echo line 1 - made and cleaned directories\n") 
     batchfile.write("date\n")
   
-    for error_file in (fil_error, presto_error, getResults_error):
+    for error_file in (preprocess_error):
 	batchfile.write("uname -n >> %s\n" % error_file)
     
     batchfile.write("#move into scratch directory\n")
@@ -109,12 +115,10 @@ def create_batch_script((obs_id, basefilename, pointing_name, numfiles, add_date
     batchfile.write("echo line 2 - copied preprocess_script and config\n") 
     batchfile.write("date\n")
 
-    # TODO : survey specific mode !!
-
     batchfile.write("#copy psrfits files\n")
 
     # Copy the numfiles fitsfiles
-    batchfile.write("scp -p clairvaux:%s %s\n" % (os.path.join(path, file), os.path.join(scratch, file) ))
+    batchfile.write("scp -p clairvaux:%s*.fits %s\n" % (os.path.join(path, basefilename), scratch )
     batchfile.write("echo line 4 - remote copied files to scratch\n\n")
     batchfile.write("date\n")
     
@@ -129,11 +133,9 @@ def create_batch_script((obs_id, basefilename, pointing_name, numfiles, add_date
 
 
 
-    batchfile.write("""echo PROCESSING: `date` >> %s\n""" % log_file)
     batchfile.write("""echo -e "\t Finished processing of: %s" >> %s\n""" % (filename, log_file))
-    batchfile.write("""echo -e "\t\t Using node: `uname -n`\n" >> %s\n""" % log_file)
-    
     batchfile.close()
+
     system("chmod 777 NUPPI_preprocess_for_%s.sh" % filename) 
     
     return "NUPPI_preprocess_for_%s.sh" % filename
@@ -156,14 +158,14 @@ def process_beam(observation):
 
     #Change database to indicate the pointing has been submitted for processing and the current time
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("UPDATE processing SET proc_stat='r', proc_date=NOW() WHERE basefilename = '%s' AND institution = '%s'" % (observation[1], institution) )
+    DBcursor.execute("UPDATE full_processing SET status='submitted to clairvaux', updated_at=NOW() WHERE obs_id=%d" % (observation[0])
     DBconn.close()
    
     return jobid.strip()
 
 def processing_table_summary():
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("select proc_stat, count(*) as n from processing group by proc_stat order by proc_stat asc;")
+    DBcursor.execute("select status, count(*) as n from full_processing group by status order by status asc;")
     A = dict(DBcursor.fetchall())
     DBconn.close()
     
@@ -187,7 +189,7 @@ def jobs_running():
     return (numjobs, numqueued)
 
 
-def beams_done():
+def check_stagging_area():
     """
     numbeams = beams_done()
     
@@ -195,8 +197,39 @@ def beams_done():
     with .infos file, waiting to be loaded.
     """
     
-    beams = glob.glob(os.path.join(dbinfo_dir, "*.infos"))
-    return len(beams)
+    Files = scan_path(stagging_path)
+    basefilenames = Files.keys()
+    basefilenames.sort()
+
+    DBcursor, DBconn = DBconnect(host, database, usrname, pw)
+
+    for basefilename in basefilenames:
+
+	QUERY = "SELECT P.obs_id, F.status FROM processing as P LEFT JOIN full_processing AS F ON F.obs_id=P.obs_id WHERE P.basefilename='%s'"%basefilename
+        DBcursor.execute(QUERY)
+	result_query = [list(row) for row in DBcursor.fetchall()]
+
+	obs_id, cur_status = result_query[0]
+
+	# Has this file been previously marked as restored ?
+	#QUERY = "SELECT status FROM full_processing WHERE obs_id=%d"%(obs_id)
+	#DBcursor.execute(QUERY)
+	#cur_status = DBcursor.fetchone()[0]
+
+	if cur_status == "submitted to clairvaux":
+
+	    # First get the size of the fileY
+	    QUERY = "INSERT INTO raw_files (obs_id, path, filename, datasize) VALUES (%d, '%s', '%s', %ld);"%(obs_id, path, filename, datasize)
+	    DBcursor.execute(QUERY)
+
+	    # then, mark it as restored
+
+	    QUERY = "UPDATE full_processing SET status='restored', updated_at=NOW() WHERE obs_id=%d" % (obs_id)
+	    DBcursor.execute(QUERY)
+
+    # Close the connexion
+    DBconn.close()
+
 
 
 def main():
@@ -207,36 +240,28 @@ def main():
     while (1):
 	#Get a list of pointings that need to be searched
 	observations = grab_pointings2process()
-	if not observations:
-	    """
-	    jobs, queued = jobs_running()
-	    summ = processing_table_summary()
-	    beams = 'Beams finished: %d ' % beams_done()
-	    status = 'No jobs'
-	    action = 'Waiting'
-	    print '- '*40
-	    info = "%d/%d: %s | %s | %s | %s | %s " % (jobs, max_jobs, status, summ, action, beams, time.ctime())
-	    print info
-	    """
-	    time.sleep(30)
+	#if not observations:
+	#    time.sleep(30)
    
+        # If pointings are requested, try submit them
 	for observation in observations:
 	    jobs, queued = jobs_running()
 	    summ = processing_table_summary()
-	    beams = 'Beams finished: %d ' % beams_done()
-	    if check_free_resources():
-		status = 'Free'
+
+	    # Free ressources, we can submit the job
+	    if check_free_resources() and check_free_stagging_space():
 		jobid = process_beam(observation)
-		action = 'Submitting job: %s' % jobid
+		action = 'Submitting job: %s  job_id: %d' % (jobid, observation[0])
 	    else:
-		status = 'Busy'
-		if queued:
-		    status = 'No nodes'
-		action = 'Waiting'
-	    print '- '*40
-	    info = "%d/%d: %s | %s | %s | %s | %s " % (jobs, max_jobs, status, summ, action, beams, time.ctime())
-	    print info
+	        if check_free_resources():
+		    print "Not enough space available on the stagging area"
+		    
 	    time.sleep(30)
+
+	# Now, check the stagging area for available beams    
+	check_stagging_area()
+
+	time.sleep(30)
     
 if __name__=='__main__':
     parser = optparse.OptionParser()
