@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gunzip < SBON512.sql.gz | mysql -p0244bon SBON512 

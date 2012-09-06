@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mysqldump -p0244bon SBON512 |gzip  > SBON512.sql.gz
+
