@@ -26,7 +26,7 @@ survey		      = "BON"
 # Local database
 host                  = "localhost" 
 distant_host          = "clairvaux" 
-database	      = "SPAN512" # current version of MySQL database
+database	      = "SBON512" # current version of MySQL database
 usrname               = "pulsar" 
 pw                    = "0244bon"
 
