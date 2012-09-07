@@ -42,8 +42,8 @@ def grab_pointings2process():
     return observations
 
 def check_free_stagging_space():
-    """Return the free space size in the stagging area"""
-    files = glob.glob(stagging_path)
+    """Return the free space size in the stagging area directory"""
+    files = glob.glob(STAGGING_AREA)
     used_space = 0
     for file in files:
       used_space +=  os.path.getsize(file)
@@ -131,6 +131,8 @@ def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     # clean the data
     # TODO
 
+    # Copy the merged (and possibly cleaned) file
+    batchfile.write("scp -p %s clairvaux:%s >> %s\n" % (, STAGGING_AREA) )
 
 
     batchfile.write("""echo -e "\t Finished processing of: %s" >> %s\n""" % (filename, log_file))
@@ -197,7 +199,7 @@ def check_stagging_area():
     with .infos file, waiting to be loaded.
     """
     
-    Files = scan_path(stagging_path)
+    Files = scan_path(STAGGING_AREA)
     basefilenames = Files.keys()
     basefilenames.sort()
 

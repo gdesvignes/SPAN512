@@ -12,6 +12,7 @@ DEBUG = False
 
 # For the full_proc pipeline
 MAX_STAGGING_SPACE_DISK = 100 * 1024 * 1024 * 1024 # 100 GB
+STAGGING_AREA = "/data/NFS2/stagging_area"
 
 # NRT
 NRT_RA_DEG = 4/60.
