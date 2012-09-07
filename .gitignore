@@ -1,0 +1,11 @@
+*.[oa]
+*.so
+*.pyc
+*~
+TAGS
+*egg-info
+*_sources
+mltpoursuite
+mkpointings
+clean_data/
+clean_data-bck/
