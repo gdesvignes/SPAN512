@@ -264,7 +264,7 @@ def add_obs2DB(pointing_name, basefilename, numfiles, disk):
     obs_id = DBcursor.fetchone()[0]
 
     # Update the full search table
-    QUERY = "INSERT IGNORE INTO full_processing (obs_id, proc_stat) VALUES (%d, 'o');" % (obs_id)
+    QUERY = "INSERT IGNORE INTO full_processing (obs_id, status) VALUES (%d, 'available');" % (obs_id)
     DBcursor.execute(QUERY)
 
 
