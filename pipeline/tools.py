@@ -52,7 +52,7 @@ def scan_path(path):
 
 	# If there is no files, exit immediatelly and return nothing
 	if not files:
-	    return None, None 
+	    return None 
 
 	# Record size
 	for ii, file in enumerate(files):

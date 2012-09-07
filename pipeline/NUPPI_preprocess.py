@@ -33,7 +33,7 @@ def grab_pointings2process():
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
     # TODO
     #DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM full_processing WHERE (proc_stat='requested') ORDER BY add_date" % institution)
-    DBcursor.execute("SELECT p.obs_id, p.basefilename, p.numfiles, p.add_date FROM full_processing AS f LEFT JOIN processing AS p ON f.obs_id = p.obs_id WHERE (f.status='requested') ORDER BY p.add_date" % institution)
+    DBcursor.execute("SELECT p.obs_id, p.basefilename, p.numfiles, p.add_date FROM full_processing AS f LEFT JOIN processing AS p ON f.obs_id = p.obs_id WHERE (f.status='requested') ORDER BY p.add_date")
     query = DBcursor.fetchall()
     DBconn.close()
     observations = []
@@ -73,16 +73,16 @@ def check_free_resources():
 def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     #create a batch script to be submitted to the queue
  
-    scratch = '%s/%s/' % (working_dir, obs_id) # working directory names
+    scratch = '%s/%s/' % (working_dir, basefilename) # working directory names
 
     preprocess_error = "%s/error/%s.PREPROCESS_error_output" % (scratch, basefilename)
 
-    batchfile = open("NUPPI_batch_for_%s.sh" % basefilename,"w")
+    batchfile = open("NUPPI_preprocess_for_%s.sh" % basefilename,"w")
     batchfile.write("#!/bin/bash\n")
     batchfile.write("#PBS -M %s\n" % email)
     batchfile.write("#PBS -m a\n")
     batchfile.write("#PBS -V\n")
-    batchfile.write("#PBS -q NUPPI\n")
+    batchfile.write("#PBS -q BON\n")
     batchfile.write("#PBS -N %s\n" % basefilename )
     batchfile.write("#PBS -l %s\n" % node_req)
     batchfile.write("#PBS -o %s/logs/%s.out\n" % (pipeline_loc, basefilename) )
@@ -110,21 +110,21 @@ def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     
     batchfile.write("#move into scratch directory\n")
     batchfile.write("cd %s\n\n" % scratch)
-    batchfile.write("cp %s %s\n\n" % (os.path.join(scripts_loc, 'NUPPI_preprocess_script.py'), scratch) )	#copy over presto
-    batchfile.write("cp %s %s\n\n" % (os.path.join(scripts_loc, 'NUPPI_config.py'), scratch) )	#copy over presto
-    batchfile.write("echo line 2 - copied preprocess_script and config\n") 
-    batchfile.write("date\n")
+    #batchfile.write("cp %s %s\n\n" % (os.path.join(scripts_loc, 'NUPPI_preprocess_script.py'), scratch) )	#copy over presto
+    #batchfile.write("cp %s %s\n\n" % (os.path.join(scripts_loc, 'NUPPI_config.py'), scratch) )	#copy over presto
+    #batchfile.write("echo line 2 - copied preprocess_script and config\n") 
+    #batchfile.write("date\n")
 
     batchfile.write("#copy psrfits files\n")
 
     # Copy the numfiles fitsfiles
-    batchfile.write("scp -p clairvaux:%s*.fits %s\n" % (os.path.join(path, basefilename), scratch )
+    batchfile.write("scp -p clairvaux:%s*/%s*.fits %s\n" % (DATADISK, basefilename, scratch ))
     batchfile.write("echo line 4 - remote copied files to scratch\n\n")
     batchfile.write("date\n")
     
     # merge NUPPI files
     batchfile.write("# run merge_psrfits\n")
-    batchfile.write("%s %s* >> %s\n" % (merge_psrfits_prog, basefilename, fil_error) )
+    batchfile.write("%s -o merged %s* >> %s\n" % (merge_psrfits_prog, basefilename, preprocess_error) )
     batchfile.write("echo line 5 - merged\n\n") 
     batchfile.write("date\n")
     
@@ -132,15 +132,17 @@ def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     # TODO
 
     # Copy the merged (and possibly cleaned) file
-    batchfile.write("scp -p %s clairvaux:%s >> %s\n" % (, STAGGING_AREA) )
+    batchfile.write("scp -p merged/*.fits clairvaux:%s \n" % (STAGGING_AREA) )
 
+    # Cleanup
+    batchfile.write("rmdir -rf %s\n" % (scratch) ) # Clean up
 
-    batchfile.write("""echo -e "\t Finished processing of: %s" >> %s\n""" % (filename, log_file))
+    batchfile.write("""echo -e "\t Finished processing of: %s" >> %s\n""" % (basefilename, log_file))
     batchfile.close()
 
-    system("chmod 777 NUPPI_preprocess_for_%s.sh" % filename) 
+    system("chmod 777 NUPPI_preprocess_for_%s.sh" % basefilename) 
     
-    return "NUPPI_preprocess_for_%s.sh" % filename
+    return "NUPPI_preprocess_for_%s.sh" % basefilename
 
     
 def process_beam(observation):
@@ -155,12 +157,12 @@ def process_beam(observation):
     log_file_obj.close()
     
     #Submit the job to openPBS
-    jobid = os.popen("qsub -l other=nbpp %s" % batchfile).readline()
+    jobid = os.popen("qsub -l other=bon %s" % batchfile).readline()
     system("""echo -e "\t\tJob submitted to queue: job_id=`qstat -f | grep 'Job Id' | tail -n 1 | awk -F': ' '{print $2}'`\n" >> %s""" % log_file)
 
     #Change database to indicate the pointing has been submitted for processing and the current time
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("UPDATE full_processing SET status='submitted to clairvaux', updated_at=NOW() WHERE obs_id=%d" % (observation[0])
+    DBcursor.execute("UPDATE full_processing SET status='submitted to clairvaux', updated_at=NOW() WHERE obs_id=%d" % (observation[0]))
     DBconn.close()
    
     return jobid.strip()
@@ -199,11 +201,14 @@ def check_stagging_area():
     with .infos file, waiting to be loaded.
     """
     
-    Files = scan_path(STAGGING_AREA)
+    Files = scan_path("%s/nuppi*fits"%STAGGING_AREA)
+    if not Files:
+        return
     basefilenames = Files.keys()
     basefilenames.sort()
 
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
+
 
     for basefilename in basefilenames:
 
