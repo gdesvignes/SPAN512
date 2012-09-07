@@ -216,6 +216,7 @@ def check_stagging_area():
         DBcursor.execute(QUERY)
 	result_query = [list(row) for row in DBcursor.fetchall()]
 
+        print result_query
 	obs_id, cur_status = result_query[0]
 
 	# Has this file been previously marked as restored ?
@@ -224,15 +225,18 @@ def check_stagging_area():
 	#cur_status = DBcursor.fetchone()[0]
 
 	if cur_status == "submitted to clairvaux":
+	    
 
 	    # First get the size of the fileY
-	    QUERY = "INSERT INTO raw_files (obs_id, path, filename, datasize) VALUES (%d, '%s', '%s', %ld);"%(obs_id, path, filename, datasize)
-	    DBcursor.execute(QUERY)
+	    #QUERY = "INSERT INTO raw_files (obs_id, path, filename, datasize) VALUES (%d, '%s', '%s', %ld);"%(obs_id, path, filename, datasize)
+	    #DBcursor.execute(QUERY)
 
 	    # then, mark it as restored
 
 	    QUERY = "UPDATE full_processing SET status='restored', updated_at=NOW() WHERE obs_id=%d" % (obs_id)
 	    DBcursor.execute(QUERY)
+
+	    print "Observation %s has been restored"%(obs_id)
 
     # Close the connexion
     DBconn.close()
@@ -259,6 +263,7 @@ def main():
 	    if check_free_resources() and check_free_stagging_space():
 		jobid = process_beam(observation)
 		action = 'Submitting job: %s  job_id: %d' % (jobid, observation[0])
+		print action
 	    else:
 	        if check_free_resources():
 		    print "Not enough space available on the stagging area"
