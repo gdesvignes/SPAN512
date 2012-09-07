@@ -19,7 +19,7 @@ elif sys.platform.startswith("linux"):
     # Connecting from Linux
     DATABASES = {
         'local-SPAN512': {
-            'DATABASE': 'SPAN512', # DB name is case sensitive
+            'DATABASE': 'SBON512', # DB name is case sensitive
             'UID':  'pulsar',
             'PWD':  '0244bon',
             'HOST': 'localhost',
