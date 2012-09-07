@@ -1,5 +1,5 @@
-create database SBON512;
-USE SBON512;
+create database SPAN512;
+USE SPAN512;
 
 create table diagnostics(header_id int (4) not null, version_id int (4) not null, rfi_percentage float (8), occupancy_number float (8), primary key(header_id, version_id));
 

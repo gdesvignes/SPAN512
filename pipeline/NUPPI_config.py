@@ -2,7 +2,7 @@
 MIN_FREE_SPACE = 7 * 1024 * 1024 * 1024  # 7 GB free for now
 LINKDISK = "/survey_data/current_disk"
 DATADISK = "/survey_data/survey"
-DB_NAME = "local-SBON512"
+DB_NAME = "local-SPAN512"
 NB_DATA_DISK = 4 
 RECIPIENTS = ["gdesvignes.astro@gmail.com", "icognard@cnrs-orleans.fr"]
 RECIPIENTS_short = ["gdesvignes.astro@gmail.com"]
@@ -25,7 +25,7 @@ survey		      = "BON"
 # Local database
 host                  = "localhost" 
 distant_host          = "clairvaux" 
-database	      = "SBON512" # current version of MySQL database
+database	      = "SPAN512" # current version of MySQL database
 usrname               = "pulsar" 
 pw                    = "0244bon"
 

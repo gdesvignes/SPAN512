@@ -18,8 +18,8 @@ if sys.platform.startswith("win"):
 elif sys.platform.startswith("linux"):
     # Connecting from Linux
     DATABASES = {
-        'local-SBON512': {
-            'DATABASE': 'SBON512', # DB name is case sensitive
+        'local-SPAN512': {
+            'DATABASE': 'SPAN512', # DB name is case sensitive
             'UID':  'pulsar',
             'PWD':  '0244bon',
             'HOST': 'localhost',
@@ -27,7 +27,7 @@ elif sys.platform.startswith("linux"):
             },
     }
 
-DEFAULTDB = 'local-SBON512'
+DEFAULTDB = 'local-SPAN512'
 DATABASES['default'] = DATABASES[DEFAULTDB]
 
 class Database:

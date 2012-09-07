@@ -29,7 +29,7 @@ def main():
   (opts, args) = parser.parse_args()			
 	
   # Scan files
-  db = Database(db="local-SBON512")
+  db = Database(db="local-SPAN512")
   DBconn = db.conn
   DBcursor = db.cursor
 
