@@ -1,4 +1,4 @@
-	subroutine calpou(ier,stopcode,ia,im,ij,ih,iu,is,ic,xw,zw,yw,rw,xcw,ycw,incw,tural,tupou,tutot,rtsdman,rtsfpou)
+	subroutine calpou(verbose,ier,stopcode,ia,im,ij,ih,iu,is,ic,xw,zw,yw,rw,xcw,ycw,incw,tural,tupou,tutot,rtsdman,rtsfpou)
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c   Calcule la poursuite complete a partir des parametres contenus dans
@@ -24,6 +24,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &	       xcfcyc,ycfcyc,rfcyc,dyfcyc,incfcyc
 	integer*2 niter,nitermax
 	integer*4 nphasp,nph,numcyc,numpha,numcycsec,numpersec
+        integer*4 verbose
 	integer*4 kodral,ier,stopcode,numperfcyc,koderr
         integer*4 ia,im,ij,ih,iu,is,ic,js,ihs,ius,iss,ics
         integer*8 temponano,f_tumerid70,f_cvrotd70,f_cvgregd70,f_rndsd70
@@ -40,13 +41,13 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
         real*8 tural,tupou,tutot,rtsdman,rtsfpou
 
         write(*,*)'calpou> Start...'
-        write(*,*)'calpou> Date/HeureTS ia,im,ij,ih,iu,is,ic= ',ia,im,ij,ih,iu,is,ic
+        if(verbose.gt.0)write(*,*)'calpou> Date/HeureTS ia,im,ij,ih,iu,is,ic= ',ia,im,ij,ih,iu,is,ic
         ts=ih/24.0+iu/1440.0+is/86400.0+ic/86400000.0
         tu=f_cvtstu(ia,im,ij,ts,ipass)
         ih=tu*24.0
         iu=(tu-ih/24.)*1440.0
         is=(tu-ih/24.-iu/1440.0)*86400.0
-        write(*,*)'calpou> Conversion en HeureTU ',ih,iu,is 
+        if(verbose.gt.0)write(*,*)'calpou> Conversion en HeureTU ',ih,iu,is 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c   'nitermax' est le nombre d'iterations maximum permises sur le calcul
 c   d'une section pour ramener le 'Z' minimum de la section a 'zlimb'
@@ -84,7 +85,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c   correction du delta si on calcul une poursuite lobe
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-        write(*,*)'calpou> Type de poursuite= ',litpou(map%pou%typou)
+        if(verbose.gt.0)write(*,*)'calpou> Type de poursuite= ',litpou(map%pou%typou)
 	if(map%pou%typou .eq. 5 .or. map%pou%typou .eq. 6)then
 		ddelta=map%pou%phase(1)%ddec/3600.d0
 		if(map%pou%typou .eq. 5)then
@@ -181,8 +182,8 @@ C	call get_positions(xc,zc,yc,rc,xcc,ycc,incc)
         xcc=xcw
         ycc=ycw
         incc=incw
-        write(*,*)'calpou> get_positions> xc zc yc rc= ',xc,zc,yc,rc
-        write(*,*)'calpou> get_positions> xcc ycc incc= ',xcc,ycc,incc
+        if(verbose.gt.0)write(*,*)'calpou> get_positions> xc zc yc rc= ',xc,zc,yc,rc
+        if(verbose.gt.0)write(*,*)'calpou> get_positions> xcc ycc incc= ',xcc,ycc,incc
         xcou=xc
         zcou=zc
         ycou=yc

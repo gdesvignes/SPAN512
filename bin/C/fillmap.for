@@ -1,14 +1,16 @@
-        subroutine fillmap(duree)
+        subroutine fillmap(duree,verbose)
         implicit none
 C        include 'structures.inc'
         include 'compou.inc'
         include 'comsoumap.inc'
 
         real*4 duree
-        integer*4 i
+        integer*4 i,verbose
 
 C        write(*,*)'fillmap> Start...'
-        write(*,*)'fillmap>  duree= ',duree
+        if(verbose.gt.0)then
+          write(*,*)'fillmap>  duree= ',duree
+        endif
 
 C --    Nom de la SOUrce
         map%ide%nom(1:3)="Map"

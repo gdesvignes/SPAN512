@@ -1,13 +1,15 @@
-        subroutine fillsou(asdw,decw)
+        subroutine fillsou(asdw,decw,verbose)
         implicit none
         include 'structures.inc'
         include 'comsoumap.inc'
 
         real*4 asdw,decw
-        integer*4 i
+        integer*4 i,verbose
 
 C        write(*,*)'fillsou> Start...'
-        write(*,*)'fillsou>  asdw= ',asdw,' decw= ',decw
+        if(verbose.gt.0)then
+         write(*,*)'fillsou>  asdw= ',asdw,' decw= ',decw
+        endif
 
 C --    Nom de la SOUrce
         sou%ide%nom(1:3)="Sou"
