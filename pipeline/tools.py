@@ -84,7 +84,9 @@ def scan_path(path):
         #print filename
 	if os.path.getsize(filename) > 0:
 	    #files3.append(os.path.split(filename[:-15])[1]) # Remove the last part of the filename and the path
-	    key = os.path.split(filename[:-15])[1]
+	    fn = os.path.split(filename)[1]
+	    key = "_".join(fn.split('_')[0:4])
+	    #key = os.path.split(filename[:-15])[1]
 	    if Files.has_key(key):
 	        Files[key] += 1
 	    else:
