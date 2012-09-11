@@ -7,6 +7,8 @@ create table versions(version_id int (4) auto_increment not null, institution va
 
 create table raw_files(obs_id int(4), path varchar(255), filename varchar(255), datasize bigint(8));
 
+create table stagged_files(obs_id int(4), path varchar(255), filename varchar(255), datasize bigint(8));
+
 create table pdm_plot_types(pdm_plot_type_id smallint(2) not null auto_increment, pdm_plot_type varchar(50), primary key(pdm_plot_type_id));
 
 create table pdm_candidate_plots(pdm_cand_id int(4) not null, pdm_plot_type_id smallint(2) not null, png_filename varchar(255) not null, primary key(pdm_cand_id, pdm_plot_type_id));

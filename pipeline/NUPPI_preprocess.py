@@ -10,7 +10,7 @@
 
 
 from sys import stdout, argv, exit
-from os import system, popen
+from os import system, popen, remove
 import sys
 import optparse
 import os.path
@@ -210,13 +210,18 @@ def check_stagging_area():
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
 
 
+    if options.debug:
+        print basefilenames
+
     for basefilename in basefilenames:
 
 	QUERY = "SELECT P.obs_id, F.status FROM processing as P LEFT JOIN full_processing AS F ON F.obs_id=P.obs_id WHERE P.basefilename='%s'"%basefilename
+	if options.debug:
+	    print QUERY 
         DBcursor.execute(QUERY)
 	result_query = [list(row) for row in DBcursor.fetchall()]
-
-        print result_query
+	if options.debug:
+	    print result_query
 	obs_id, cur_status = result_query[0]
 
 	# Has this file been previously marked as restored ?
@@ -227,9 +232,13 @@ def check_stagging_area():
 	if cur_status == "submitted to clairvaux":
 	    
 
-	    # First get the size of the fileY
-	    #QUERY = "INSERT INTO raw_files (obs_id, path, filename, datasize) VALUES (%d, '%s', '%s', %ld);"%(obs_id, path, filename, datasize)
-	    #DBcursor.execute(QUERY)
+	    # First get the size of the file
+	    fullfilename = glob.glob("%s/%s*.fits"%(STAGGING_AREA, basefilename))[0]
+	    path, filename = os.path.split(fullfilename)
+	    datasize = os.path.getsize(fullfilename)
+
+	    QUERY = "INSERT INTO stagged_files (obs_id, path, filename, datasize) VALUES (%d, '%s', '%s', %ld);"%(obs_id, path, filename, datasize)
+	    DBcursor.execute(QUERY)
 
 	    # then, mark it as restored
 
@@ -237,6 +246,26 @@ def check_stagging_area():
 	    DBcursor.execute(QUERY)
 
 	    print "Observation %s has been restored"%(obs_id)
+
+    # Close the connexion
+    DBconn.close()
+
+
+
+def clean_stagging_area():
+    """Delete the data in the stagging area
+    """
+    
+    DBcursor, DBconn = DBconnect(host, database, usrname, pw)
+    QUERY = "SELECT P.obs_id, F.status, P.basefilename FROM processing as P LEFT \
+    		JOIN full_processing AS F ON F.obs_id=P.obs_id WHERE \
+		F.status='download complete (to be deleted)'"
+    DBcursor.execute(QUERY)
+    result_query = [list(row) for row in DBcursor.fetchall()]
+
+    for obs in result_query:
+        if os.path.exists(fn):
+	    os.remove(fn)
 
     # Close the connexion
     DBconn.close()
@@ -272,6 +301,9 @@ def main():
 
 	# Now, check the stagging area for available beams    
 	check_stagging_area()
+
+	# Delete the files in the stagging area that have been successfully downloaded
+	clean_stagging_area()
 
 	time.sleep(30)
     
