@@ -1,10 +1,11 @@
 *.[oa]
 *.so
 *.pyc
+*.sh
 *~
 TAGS
 *egg-info
-*_sources
+*.sources
 mltpoursuite
 mkpointings
 clean_data/
