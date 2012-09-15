@@ -257,15 +257,21 @@ def clean_stagging_area():
     """
     
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    QUERY = "SELECT P.obs_id, F.status, P.basefilename FROM processing as P LEFT \
-    		JOIN full_processing AS F ON F.obs_id=P.obs_id WHERE \
-		F.status='download complete (to be deleted)'"
+    QUERY = "SELECT F.obs_id, S.path, S.filename FROM stagged_files as S \
+    	LEFT JOIN full_processing AS F ON F.obs_id=S.obs_id WHERE \
+	F.status='download complete (to be deleted)'"
     DBcursor.execute(QUERY)
     result_query = [list(row) for row in DBcursor.fetchall()]
 
     for obs in result_query:
+        fn = os.path.join(obs[1], obs[2])
+	print "Download of '%s' done. Deleting file\n"%fn
         if os.path.exists(fn):
 	    os.remove(fn)
+	
+	obs_id = obs[0]
+	QUERY = "UPDATE full_processing SET status='download complete (file deleted)', updated_at=NOW() WHERE obs_id=%d" % (obs_id)
+        DBcursor.execute(QUERY)
 
     # Close the connexion
     DBconn.close()
