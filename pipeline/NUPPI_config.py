@@ -39,13 +39,13 @@ pw                    = "0244bon"
 
 
 # Locations of scripts
-pipeline_loc	      = "/data/NFS2/NUPPI/" 
+pipeline_loc	      = "/data/NFS2/SPAN512/" 
 scripts_loc           = pipeline_loc + "pipeline/"
 misc_loc	      = pipeline_loc + "miscellaneous/"
 logs_loc	      = pipeline_loc + "logs/"
 
 # Results location
-final_dir             = "/data/NFS2/NUPPI/results" 
+final_dir             = "/data/NFS2/SPAN512/results" 
 dbinfo_dir	      = final_dir + "/database_info/"
 error_dir	      = final_dir + "/error/"
 log_file              = final_dir + "/NUPPI_log.txt"
@@ -88,6 +88,7 @@ hi_accel_flo          = 1.0  # Hz
 low_T_to_search       = 20.0 # sec
 MAX_DM_2_ZAP_SP       = 50.0 # Maximum DM under which the time series are zapped for the 50 Hz signal
 bad_chans	      = "0,645,646,647,648,649,650,651,652,653,654,781,782,783,784,785,786,787,788,789,790,791,792"
+bad_ints	      = "15,16,17,18"
 
 
 def classification_map(x):

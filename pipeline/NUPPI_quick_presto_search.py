@@ -253,7 +253,7 @@ if (1):
     ddplans.append(dedisp_plan( 210.0,   0.3,     700,     1,       32,       4))
     ddplans.append(dedisp_plan( 420.0,   0.3,     700,     1,       32,       4))
     ddplans.append(dedisp_plan( 630.0,   0.5,     758,     1,       32,       8))
-    ddplans.append(dedisp_plan(1009.0,   1.0,     491,     1,       32,      16))
+    ddplans.append(dedisp_plan(1009.0,   1.0,     791,     1,       32,      16))
     # The values here are:       lodm dmstep dms/call #calls #subbands downsamp
     """
     ddplans.append(dedisp_plan(   0.0,   0.1,     500,     1,       32,       1))
@@ -299,8 +299,8 @@ def main(filename, workdir):
     print "UTC time is:  %s"%(time.asctime(time.gmtime()))
 
     # rfifind the psrfits file
-    cmd = "rfifind -zapchan %s -psrfits -timesig %.2f -freqsig %.2f -time %.17g -o %s %s > %s_rfifind.out"%\
-          (bad_chans, rfifind_timesig, rfifind_freqsig, rfifind_chunk_time, job.basefilename,
+    cmd = "rfifind -zapchan %s -zapints %s -psrfits -timesig %.2f -freqsig %.2f -time %.17g -o %s %s > %s_rfifind.out"%\
+          (bad_chans, bad_ints, rfifind_timesig, rfifind_freqsig, rfifind_chunk_time, job.basefilename,
            job.filename, job.basefilename)
     job.rfifind_time += timed_execute(cmd)
     # Find the fraction that was suggested to be masked
@@ -415,7 +415,7 @@ def main(filename, workdir):
     # Fold the best candidates
 
     cands_folded = 0
-    for cand in all_accel_cands:
+    for cand in all_accel_cands.cands:
         if cands_folded == max_cands_to_fold:
             break
         if cand.sigma > to_prepfold_sigma:
