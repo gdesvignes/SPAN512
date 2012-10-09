@@ -62,6 +62,7 @@ working_dir	      = "/scratch/NUPPI" # Name of working directory on nodes
 merge_psrfits_prog    = "/usr/local/src/psrfits_utils/merge_psrfits"
 #base_output_directory = "/data/NBPP/NBPP-results/"
 node_req	      = "nodes=1:ppn=1:%s"%(use_ressources) # PBS request
+numfiles_to_search    = 8
 #rows2del              = 8    # Corresponds to 8 sec of data to remove at the beginning of the observation (with nuppi databuf=256MB)
 
 
@@ -75,7 +76,7 @@ singlepulse_plot_SNR  = 6.0  # threshold SNR for singlepulse plot
 singlepulse_maxwidth  = 0.1  # max pulse width in seconds
 to_prepfold_sigma     = 6.0  # incoherent sum significance to fold candidates
 max_cands_to_fold     = 120  # Never fold more than this many candidates
-numhits_to_fold       = 2    # Number of DMs with a detection needed to fold
+numhits_to_fold       = 3    # Number of DMs with a detection needed to fold  #XXX GD This a quicklook so changed to 3 !!
 low_DM_cutoff         = 2.0  # Lowest DM to consider as a "real" pulsar
 lo_accel_numharm      = 16   # max harmonics
 lo_accel_sigma        = 3.0  # threshold gaussian significance
