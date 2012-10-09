@@ -31,7 +31,7 @@ def main():
   DBconn = db.conn
   DBcursor = db.cursor
 
-  files = glob.glob("/survey_data/survey?/*.fits")
+  #files = glob.glob("/survey_data/survey?/*.fits")
 
   QUERY = "SELECT basefilename,numfiles FROM processing WHERE numfiles != 8"
   #print QUERY
@@ -39,7 +39,18 @@ def main():
   basefilenames = DBcursor.fetchall()
 
   for data in basefilenames:
-      print data
+      print data,
+      files = glob.glob("/survey_data/survey?/%s*.fits"%(data[0]))
+      print "Found %d files"%len(files),
+
+      if len(files) != data[1]:
+          print "Fix it ? [y/n] ",
+	  ch = sys.stdin.readline()
+	  ch = ch.strip()
+	  if ch=='y':
+              QUERY = "UPDATE processing set numfiles=%d WHERE basefilename='%s'"%(len(files), data[0])
+              DBcursor.execute(QUERY)
+      print
   
   DBconn.close()
 
