@@ -105,9 +105,6 @@ def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     batchfile.write("echo line 1 - made and cleaned directories\n") 
     batchfile.write("date\n")
   
-    for error_file in (preprocess_error):
-	batchfile.write("uname -n >> %s\n" % error_file)
-    
     batchfile.write("#move into scratch directory\n")
     batchfile.write("cd %s\n\n" % scratch)
     #batchfile.write("cp %s %s\n\n" % (os.path.join(scripts_loc, 'NUPPI_preprocess_script.py'), scratch) )	#copy over presto
@@ -135,7 +132,7 @@ def create_batch_script((obs_id, basefilename, numfiles, add_date)):
     batchfile.write("scp -p merged/*.fits clairvaux:%s \n" % (STAGGING_AREA) )
 
     # Cleanup
-    batchfile.write("rmdir -rf %s\n" % (scratch) ) # Clean up
+    batchfile.write("rm -rf %s\n" % (scratch) ) # Clean up
 
     batchfile.write("""echo -e "\t Finished processing of: %s" >> %s\n""" % (basefilename, log_file))
     batchfile.close()
