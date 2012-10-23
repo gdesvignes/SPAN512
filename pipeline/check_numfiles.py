@@ -41,9 +41,13 @@ def main():
   for data in basefilenames:
       print data,
       files = glob.glob("/survey_data/survey?/%s*.fits"%(data[0]))
-      print "Found %d files"%len(files),
+      num_files = len(files)
+      for ifile in files:
+          if os.path.getsize(ifile) < 1024*1024:
+	      num_files = numfiles-1
+      print "Found %d files"%num_files,
 
-      if len(files) != data[1]:
+      if num_files != data[1]:
           print "Fix it ? [y/n] ",
 	  ch = sys.stdin.readline()
 	  ch = ch.strip()
