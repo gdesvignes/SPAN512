@@ -117,9 +117,10 @@ def get_folding_command(cand, obs, ddplans):
         foldfiles = filfile
     p = 1.0 / cand.f
     nsub = 64
+    nsub = 32
     if p < 0.002:
         Mp, Mdm, N = 2, 2, 24
-        otheropts = "-npart 50 -ndmfact 3"
+        otheropts = "-npart 40"
     elif p < 0.05:
         Mp, Mdm, N = 2, 1, 50
         otheropts = "-npart 40 -pstep 1 -pdstep 2 -dmstep 3"
@@ -249,11 +250,21 @@ class dedisp_plan:
 # not counting scattering <1 ms up to a DM of ~600 pc cm^-3
 ddplans = []
 if (1):
+    """
     ddplans.append(dedisp_plan(   0.0,   0.3,     700,     1,       32,       4))
     ddplans.append(dedisp_plan( 210.0,   0.3,     700,     1,       32,       4))
     ddplans.append(dedisp_plan( 420.0,   0.3,     700,     1,       32,       4))
     ddplans.append(dedisp_plan( 630.0,   0.5,     758,     1,       32,       8))
     ddplans.append(dedisp_plan(1009.0,   1.0,     791,     1,       32,      16))
+    """
+    ddplans.append(dedisp_plan(   0.0,   0.3,     500,     1,       32,       4))
+    ddplans.append(dedisp_plan( 150.0,   0.3,     500,     1,       32,       4))
+    ddplans.append(dedisp_plan( 300.0,   0.5,     400,     1,       32,       8))
+    ddplans.append(dedisp_plan( 500.0,   1.0,     500,     1,       32,      16))
+    ddplans.append(dedisp_plan(1000.0,   3.0,     270,     1,       32,      32))
+    
+
+    #"""
     # The values here are:       lodm dmstep dms/call #calls #subbands downsamp
     """
     ddplans.append(dedisp_plan(   0.0,   0.1,     500,     1,       32,       1))
