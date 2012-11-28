@@ -179,7 +179,7 @@ def loadInfoBeam(infobeam, DBcursor, DBconn):
     print "pdm_cand_ids: %d-%d (%d cands)" % (min_cand, max_cand, max_cand - (min_cand-1))
     #print "sp_cand_ids: %d-%d (%d sps)" % (min_sp, max_sp, max_sp - (min_sp-1))
    
-    markBeam('d', header_id, DBcursor, DBconn)
+    markBeam('complete', header_id, DBcursor, DBconn)
     return max_cand - (min_cand-1)
 
 

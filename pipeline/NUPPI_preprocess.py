@@ -31,8 +31,6 @@ def DBconnect(Host,DBname,Username,Password):
 
 def grab_pointings2process():
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    # TODO
-    #DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM full_processing WHERE (proc_stat='requested') ORDER BY add_date" % institution)
     DBcursor.execute("SELECT p.obs_id, p.basefilename, p.numfiles, p.add_date FROM full_processing AS f LEFT JOIN processing AS p ON f.obs_id = p.obs_id WHERE (f.status='requested') ORDER BY p.add_date")
     query = DBcursor.fetchall()
     DBconn.close()

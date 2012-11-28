@@ -374,8 +374,8 @@ int main(int argc, char *argv[]) {
 	        if (conditions) CONDITIONS += "AND ";
 	    }
 
-	    // -- Include the already observed beams
-	    if(!already_observed) {CONDITIONS +="grid_id NOT IN (SELECT grid_id FROM processing WHERE proc_stat='p' OR proc_stat='o' OR proc_stat='r' OR proc_stat='f' OR proc_stat='d' OR proc_stat='e') ";}
+	    // -- Include the already observed beams or not --
+	    if(!already_observed) {CONDITIONS +="grid_id NOT IN (SELECT grid_id FROM processing WHERE obs_stat='plannified' or obs_stat='observed') ";}
 	}
     }	
 
@@ -523,7 +523,7 @@ int main(int argc, char *argv[]) {
     // -- TODO Loop over the requested sources --
     for(ii=0; ii<grid_ids.size();ii++) {
 	// Register the pointing to the database
-	query << "INSERT INTO processing (grid_id, planned_date, proc_stat) VALUES ("<<grid_ids[ii]<<", NOW(), 'p')";
+	query << "INSERT INTO processing (grid_id, planned_date, obs_stat) VALUES ("<<grid_ids[ii]<<", NOW(), 'plannified')";
 
 	if(doit) {
 	    if (VERBOSE) cout << query << endl;

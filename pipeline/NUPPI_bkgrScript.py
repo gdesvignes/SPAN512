@@ -31,8 +31,7 @@ def DBconnect(Host,DBname,Username,Password):
 
 def grab_pointings2process():
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM processing WHERE (proc_stat='o' AND institution='%s' AND numfiles=%d) ORDER BY obs_id" % (institution, numfiles_to_search))
-    #DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM processing WHERE (proc_stat='o' AND institution='%s') ORDER BY add_date" % institution)
+    DBcursor.execute("SELECT obs_id, basefilename, pointing_name, numfiles, add_date FROM processing WHERE (obs_stat='observed' AND proc_stat is NULL AND institution='%s' AND numfiles=%d) ORDER BY obs_id" % (institution, numfiles_to_search))
     query = DBcursor.fetchall()
     DBconn.close()
     observations = []
@@ -184,22 +183,30 @@ def process_beam(observation):
 
     #Change database to indicate the pointing has been submitted for processing and the current time
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("UPDATE processing SET proc_stat='r', proc_date=NOW() WHERE basefilename = '%s' AND institution = '%s'" % (observation[1], institution) )
+    DBcursor.execute("UPDATE processing SET proc_stat='job running', proc_date=NOW() WHERE basefilename = '%s' AND institution = '%s'" % (observation[1], institution) )
     DBconn.close()
    
     return jobid.strip()
 
 def processing_table_summary():
+    summ = []
+
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("select proc_stat, count(*) as n from processing group by proc_stat order by proc_stat asc;")
+    DBcursor.execute("select obs_stat, count(*) as n from processing WHERE (proc_stat IS NULL AND (numfiles=%d OR numfiles is NULL)) group by obs_stat order by obs_stat asc;"% numfiles_to_search)
     A = dict(DBcursor.fetchall())
-    DBconn.close()
-    
     keys = A.keys()
     keys.sort()
-    summ = []
     for k in keys:
 	summ.append('%s:%d' % (k, A[k]))
+
+    DBcursor.execute("select proc_stat, count(*) as n from processing where proc_stat IS NOT NULL group by proc_stat order by proc_stat asc;")
+    A = dict(DBcursor.fetchall())
+    DBconn.close()
+    keys = A.keys()
+    keys.sort()
+    for k in keys:
+	summ.append('%s:%d' % (k, A[k]))
+
     return '; '.join(summ)
     
 def beam_done(basefilename):
@@ -230,14 +237,14 @@ def beams_done():
 
 def update_DB(PBS):
     DBcursor, DBconn = DBconnect(host, database, usrname, pw)
-    DBcursor.execute("SELECT basefilename FROM processing WHERE (proc_stat='r') ORDER BY proc_date")
+    DBcursor.execute("SELECT basefilename FROM processing WHERE (proc_stat='job running') ORDER BY proc_date")
     query = DBcursor.fetchall()
     for basefilenames in query:
         basefilename = basefilenames[0]
 
         # First mark finished beams with an 'a' for 'analyzed'	 
 	if beam_done(basefilename):
-	    QUERY = "UPDATE processing SET proc_stat='f' WHERE basefilename='%s';\n"%(basefilename)
+	    QUERY = "UPDATE processing SET proc_stat='job finished' WHERE basefilename='%s';\n"%(basefilename)
 	    #print QUERY
 	    DBcursor.execute(QUERY)
 	    continue
@@ -245,7 +252,7 @@ def update_DB(PBS):
 
 	# Then look for beams which are still 'r' but with errors
 	if PBS.had_errors(basefilename) or (not PBS.is_running(basefilename)):
-	    QUERY = "UPDATE processing SET proc_stat='e' WHERE basefilename='%s';\n"%(basefilename)
+	    QUERY = "UPDATE processing SET proc_stat='error' WHERE basefilename='%s';\n"%(basefilename)
 	    #print QUERY
 	    DBcursor.execute(QUERY)
 

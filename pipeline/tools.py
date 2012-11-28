@@ -122,13 +122,13 @@ def check_new_obs(disk):
 
     new_files = []
     new_files_nb = []
-    # Will sort the files who are not already in the DB in stat o:observed, a:analyzing or r:with results, f:processing finished, e:error
+    # Will sort the files who are not already in the DB in obs_stat: observed or resubmitted
     basefilenames = Files.keys()
     basefilenames.sort()
     for basefilename in basefilenames:
     #for basefilename, file_nb in zip(basefilenames, nbfiles):
         sfilename = os.path.split(basefilename)[1]
-	QUERY = "SELECT * FROM processing WHERE basefilename = '%s' AND (proc_stat='o' OR proc_stat='f' OR proc_stat='r' OR proc_stat='e' OR proc_stat='d')"%sfilename
+	QUERY = "SELECT * FROM processing WHERE basefilename = '%s' AND (obs_stat='observed' OR obs_stat='resubmitted')"%sfilename
 	DBcursor.execute(QUERY)
 	result_query = [list(row) for row in DBcursor.fetchall()]
 	if DEBUG: print QUERY, result_query
@@ -252,10 +252,10 @@ def add_obs2DB(pointing_name, basefilename, numfiles, disk):
 
     # No observation was planned, do an INSERT
     if not result_query:
-	QUERY = "INSERT IGNORE INTO processing (basefilename, numfiles, institution, diskname, obs_date, add_date, grid_id, proc_stat) VALUES ('%s', %d, '%s', '%s', '%d-%d-%d %d:%d:%d', NOW(), %d, 'o');" % (basefilename, numfiles, INSTITUTION, get_disk_label_nfs(disk), yr, month, day,h, m, s, grid_id)
+	QUERY = "INSERT IGNORE INTO processing (basefilename, numfiles, institution, diskname, obs_date, add_date, grid_id, obs_stat) VALUES ('%s', %d, '%s', '%s', '%d-%d-%d %d:%d:%d', NOW(), %d, 'observed');" % (basefilename, numfiles, INSTITUTION, get_disk_label_nfs(disk), yr, month, day,h, m, s, grid_id)
     # Found that the observation was planned, do an UPDATE
     else:	    
-	QUERY = "UPDATE processing SET basefilename='%s', numfiles=%d, institution='%s', diskname='%s', obs_date='%d-%d-%d %d:%d:%d', add_date=NOW(), proc_stat='o' WHERE pointing_name='%s' ;" % (basefilename, numfiles, INSTITUTION, get_disk_label_nfs(disk), yr, month, day,h, m, s, pointing_name)
+	QUERY = "UPDATE processing SET basefilename='%s', numfiles=%d, institution='%s', diskname='%s', obs_date='%d-%d-%d %d:%d:%d', add_date=NOW(), obs_stat='observed' WHERE pointing_name='%s' ;" % (basefilename, numfiles, INSTITUTION, get_disk_label_nfs(disk), yr, month, day,h, m, s, pointing_name)
 
     if DEBUG: print QUERY
     DBcursor.execute(QUERY)

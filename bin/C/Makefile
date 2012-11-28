@@ -1,5 +1,6 @@
 #mkpointings:	mkpointings.C
 #	g++ -O2 -Wall -o mkpointings mkpointings.C -I/usr/include/mysql -lmysqlpp
+all:	mkpointings
 
 mkpointings:	mkpointings.C
 	gfortran -ffixed-line-length-132 -fno-range-check -c calpou.for astrolib.for libcvtime.for libcalpou.for fillsou.for fillmap.for dumpou.for

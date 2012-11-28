@@ -60,6 +60,8 @@ def main():
       QUERY = "UPDATE processing SET obs_date=\"%d-%d-%d %d:%d:%d\" where pointing_name='%s';"%(yr, month, day,h, m, s, pointing_name)
       print QUERY
       DBcursor.execute(QUERY)
+
+      pfits.close()
   #result_query = [list(row) for row in DBcursor.fetchall()]
   #print result_query
   

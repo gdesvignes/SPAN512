@@ -40,9 +40,9 @@ def main():
 
   #QUERY = "SELECT H.right_ascension, H.declination, H.galactic_longitude, H.galactic_latitude FROM headers as H LEFT JOIN processing as P ON P.obs_id=H.obs_id"
   if opts.all_pointings:
-      QUERY = "SELECT G.right_ascension, G.declination FROM NRT_grid as G RIGHT JOIN processing as H ON H.grid_id=G.grid_id WHERE (H.proc_stat='o' OR H.proc_stat='f' OR H.proc_stat='r' OR H.proc_stat='e' OR H.proc_stat='d' OR H.proc_stat='w')"
+      QUERY = "SELECT G.right_ascension, G.declination FROM NRT_grid as G RIGHT JOIN processing as H ON H.grid_id=G.grid_id WHERE (H.obs_stat='observed')"
   else:
-      QUERY = "SELECT G.right_ascension, G.declination FROM NRT_grid as G RIGHT JOIN processing as H ON H.grid_id=G.grid_id WHERE G.is_SPAN=TRUE AND (H.proc_stat='o' OR H.proc_stat='f' OR H.proc_stat='r' OR H.proc_stat='e' OR H.proc_stat='d' OR H.proc_stat='w')"
+      QUERY = "SELECT G.right_ascension, G.declination FROM NRT_grid as G RIGHT JOIN processing as H ON H.grid_id=G.grid_id WHERE G.is_SPAN=TRUE AND (H.obs_stat='observed')"
   DBcursor.execute(QUERY)
 
   results_query = DBcursor.fetchall()
@@ -60,11 +60,13 @@ def main():
 
   pgopen("/xw")
   #pgopen("plot.ps/cps")
-  pgsvp(0., 1., 0.15, .85)
-  #pgwnad(180., -180., -90., 90.)
-  #pgswin(180., -180., -60., 60.)
-  pgswin(180., -10., -60., 60.)
-  pltframe()
+  pgpap(0.0, 0.8)
+  pgsvp(0.05, 0.95, 0.15, .85)
+  #pgswin(180., -180., -90., 90.)
+  pgswin(180., -180., -60., 60.)
+  pgbox("BC", 0, 0, "BC", 0, 0)
+  #pgswin(180., 15., -75., 75.)
+  pltframe(use_colors=True)
 
   print "Number of observed beams:", len(l)
   pgmtxt('BL', 2., 0., 0., "Number of observed beams: %d"%len(l))
@@ -78,7 +80,7 @@ def main():
       #print i,j,k,l
 
   # 1st zone
-  xlim = np.array([72,150,150,72,72]) * DEGTORAD
+  xlim = np.array([74,150,150,74,74]) * DEGTORAD
   ylim = np.array([3.5,3.5,5.,5.,3.5])  * DEGTORAD
   x, y = aitoff(xlim, ylim) 
   pgline(x,y)
@@ -87,6 +89,8 @@ def main():
   ylim = np.array([-3.5,-3.5,-5.,-5.,-3.5])  * DEGTORAD
   x, y = aitoff(xlim, ylim) 
   pgline(x,y)
+
+  plt_Arecibo()
 
   pgend()
 

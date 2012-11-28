@@ -56,6 +56,16 @@ def main():
               DBcursor.execute(QUERY)
       print
   
+  """
+  QUERY = "SELECT basefilename,numfiles FROM processing"
+  #print QUERY
+  DBcursor.execute(QUERY)
+  basefilenames = DBcursor.fetchall()
+
+  for data in basefilenames:
+      print data,
+      files = glob.glob("/survey_data/survey?/%s*.fits"%(data[0]))
+  """    
   DBconn.close()
 
 if __name__ == '__main__':

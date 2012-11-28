@@ -7,7 +7,7 @@ from psrfits import Psrfits
 
 
 # Start script assuming disk0  
-disk_id=2
+disk_id=4
 datadisk = DATADISK+str(disk_id)
 
 try:
@@ -42,6 +42,7 @@ while True:
 
     # Check for new files
     new_obsnames, new_files_nb = check_new_obs(LINKDISK)
+    #print "GD", new_obsnames, new_files_nb
     if new_obsnames:
 
         for obsname, numfiles in zip(new_obsnames, new_files_nb):

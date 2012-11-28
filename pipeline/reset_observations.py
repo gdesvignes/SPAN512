@@ -11,6 +11,7 @@ from psr_utils import *
 
 
 full_usage = """
+TBD
 usage : pltasc.py [options] .asc files
 
   [-h, --help]        : Display this help
@@ -18,13 +19,13 @@ usage : pltasc.py [options] .asc files
 
 
 """
-usage = "usage: %prog [options] files"
+usage = "usage: %prog [options]"
 
 
 def main():
   parser = OptionParser(usage)
 
-  parser.add_option("-d", "--days", type="float", dest="nb_days", default=1.0,
+  parser.add_option("-d", "--days", type="float", dest="nb_days", default=30.0,
                           help="Minimum number of days for plannified observations")
 
   (opts, args) = parser.parse_args()			
@@ -35,21 +36,24 @@ def main():
   DBcursor = db.cursor
 
 
-  QUERY = "SELECT pointing_name, grid_id, planned_date from processing WHERE proc_stat='p' AND DATEDIFF(NOW(), planned_date) > %f"%(opts.nb_days)
+  QUERY = "SELECT pointing_name, grid_id, planned_date from processing WHERE obs_stat='plannified' AND DATEDIFF(NOW(), planned_date) > %f"%(opts.nb_days)
   DBcursor.execute(QUERY)
   result_query = [list(row) for row in DBcursor.fetchall()]
 
-  print " Pointing  grid_id   planned_date"
-  print " --------------------------------"
+  print ""
+  print " %s observations plannified more than %d days ago"%(len(result_query), opts.nb_days)
+  print ""
+  print " Pointing   grid_id    planned_date"
+  print " ----------------------------------"
   print "",
 
   for obs in result_query:
-      print "%s %7d %s"%(obs[0], obs[1], obs[2]),
-      print "  Do you want to reset proc_stat? [y/n] ",
+      print "%s  %7d  %s"%(obs[0], obs[1], obs[2]),
+      print "    Do you want to resubmit the observation? [y/n] ",
       ch = sys.stdin.readline()
       ch = ch.strip()
       if ch=='y':
-          QUERY = "UPDATE processing set proc_stat=NULL WHERE pointing_name='%s'"%(obs[0])
+          QUERY = "UPDATE processing set obs_stat='resubmitted' WHERE pointing_name='%s'"%(obs[0])
 	  DBcursor.execute(QUERY)
   
   DBconn.close()

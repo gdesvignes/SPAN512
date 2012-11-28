@@ -96,28 +96,32 @@ def pltlegend():
 
     # Draw legend on declination arcs: list is combination of hour angles and label angles
     #for ra,angle in [ [0,55], [3,-15], [6,-90], [9,-45], [12,-5], [15,60], [18,60], [21,60]]:
-    for ra,angle in [ [0,55], [3,-15], [6,-90], [9,-45], [12,-5], [15,60], [18,60], [21,60]]:
-        l,b =  slalib.sla_eqgal(ra*360/24. * DEGTORAD, 10.0 * DEGTORAD)
+    for ra,angle in [ [0,55], [3,-15], [6,-90], [9,-45], [12,-5], [18,60], [21,60]]:
+    #for ra,angle in [ [0,55], [3,-15], [6,-90], [9,-45], [12,-5], [15,60],  [21,60]]:
+        l,b =  slalib.sla_eqgal(ra*360/24. * DEGTORAD, 35.0 * DEGTORAD) # origi was 10
 	if l>np.pi: l -= 2*np.pi
 	x, y = aitoff(l, b)
 	if ra != 12: pgptxt(x, y, angle, 0.5, "%dhr"%ra)
 
     # Draw legend on declination arcs
     for deg in [-60., -30., 0., 30., 60.]:
-        l,b =  slalib.sla_eqgal(270 * DEGTORAD, deg * DEGTORAD)
+        l,b =  slalib.sla_eqgal(260 * DEGTORAD, deg * DEGTORAD) # origi was 270
 	if l>np.pi: l -= 2*np.pi
 	x, y = aitoff(l, b)
 	pgptxt(x, y, 60., 0., "%ddeg"%deg)
     pgsch(1.)
 
 
-def pltframe():
+def pltframe(use_colors=True):
 
     # Draw the outer arcs
     for l in [-180., 180.]:
 	x, y = arc_lon(l); pgline(x, y)
 
     # Draw the inner arcs
+    #if use_colors:
+    #    pgsci(5)
+    #else:
     pgsci(15)
     for l in [-120., -60., 0., 60., 120.]:
 	x, y = arc_lon(l); pgline(x, y)
@@ -126,7 +130,10 @@ def pltframe():
     pgsci(1)
 
     # Draw the RA arcs
-    pgsci(5)
+    if use_colors:
+        pgsci(5)
+    else:
+        pgsci(15)
     for ra in range(0, 360, 15):
 	arc_RA(ra)
     # Draw the DEC arcs
@@ -137,6 +144,12 @@ def pltframe():
     # Draw the legend
     pltlegend()
 
+def plt_Arecibo():
+    # 32 - 77
+    pgsls(2)
+    arc_DEC(38)
+    arc_DEC(-1)
+    pgsls(1)
 
 
 if __name__ == '__main__':
